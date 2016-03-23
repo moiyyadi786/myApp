@@ -29,11 +29,25 @@ angular.module('starter.services', [])
     saveRequest: function(data){
       var post = $http({
         method: 'POST',
-        url: 'http://localhost:8100/book/save',
+        url: 'http://localhost:9000/book/save',
         data: data
       });
       return post;
     },
+    getMyBooks: function(){
+      var books = $http({
+          method: 'GET',
+          url: 'http://localhost:9000/books'
+      });
+      return books;
+    },
+    getBookDetails: function(id){
+     var book = $http({
+          method: 'GET',
+          url: 'http://localhost:9000/book/'+id
+      });
+      return book;
+    }
     /*remove: function(chat) {
       chats.splice(chats.indexOf(chat), 1);
     },
