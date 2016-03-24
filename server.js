@@ -10,7 +10,7 @@ var mongoose = require('mongoose');
 
 var app = express();
 app.use(express.static(__dirname + '/www'));
-var connection = mongoose.connect('mongodb://localhost:27017/bookStore');
+var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439/bookexchange');
 
 var Schema = mongoose.Schema;
 var autoIncrement = require('mongoose-auto-increment');
