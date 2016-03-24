@@ -29,7 +29,7 @@ angular.module('starter.services', [])
     saveRequest: function(data){
       var post = $http({
         method: 'POST',
-        url: 'http://localhost:9000/book/save',
+        url: 'book/save',
         data: data
       });
       return post;
@@ -44,7 +44,7 @@ angular.module('starter.services', [])
     getBookDetails: function(id){
      var book = $http({
           method: 'GET',
-          url: 'http://localhost:9000/book/'+id
+          url: '/book/'+id
       });
       return book;
     }
