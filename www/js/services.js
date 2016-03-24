@@ -37,7 +37,7 @@ angular.module('starter.services', [])
     getMyBooks: function(){
       var books = $http({
           method: 'GET',
-          url: 'http://localhost:9000/books'
+          url: '/books'
       });
       return books;
     },
