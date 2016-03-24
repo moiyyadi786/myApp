@@ -1,0 +1,41 @@
+<ion-view view-title="Place New Request" cache-view='false'>
+  <ion-content>
+    <form name="placeOrderForm" novalidate ng-submit="submit()">
+          <a ng-class="['button', 'button-full', {'button-stable': !buy}, {'button-assertive': buy}]" ng-click="buy=true; sell=false; fields.orderType='buy'">
+              I want to Buy
+           </a>
+           <a ng-class="['button', 'button-full', {'button-stable': !sell}, {'button-assertive': sell}]" ng-click= "sell=true; buy=false; fields.orderType='sell'">
+               I want to Sell
+            </a>
+          <input type="hidden" name="orderType" ng-model="fields.orderType" value={{orderType}} required>
+          <div class="list">
+            <label class="item item-input">
+                <span class="input-label">Books Name</span>
+                <input type="text" name="bookName" ng-model="fields.bookName" required>
+            </label>
+            <label class="item item-input">
+                <span class="input-label">Description</span>
+                <input type="text" name="description" ng-model="fields.description" required>
+            </label>
+            <label class="item item-input item-select">
+              <span class="input-label">
+                Book Condition
+              </span>
+              <select name="bookCondition">
+                <option>New</option>
+                <option selected>Good</option>
+                <option>Fair</option>
+              </select>
+            </label>
+        </div>
+        <div class="padding">
+            <p ng-show="placeOrderForm.bookName.$error.required">* Book Name is Required</p>
+            <p ng-show="placeOrderForm.description.$error.required">* Description is required</p>
+            <p ng-show="placeOrderForm.orderType.$error.required">* You want to buy or sell?</p>
+        </div>
+        <div class="padding">
+            <button type="button" class="button button-block button-positive" ng-disabled="placeOrderForm.$invalid" ng-click="submit()">Submit</button>
+        </div>
+    </form>
+  </ion-content>
+</ion-view>
