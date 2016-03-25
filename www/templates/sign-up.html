@@ -1,0 +1,29 @@
+<form ua-signup>
+  <ion-view title="Sign Up">
+    <ion-content>
+      <div class="list list-inset">
+        <label class="item item-input">
+          <span class="input-label">Name</span>
+          <input type="text" name="firstname" ng-model="data.firstname">
+        </label>
+        <label class="item item-input">
+          <span class="input-label">Email</span>
+          <input type="text" name="username" ua-is-email ng-model="data.username">
+        </label>
+        <label class="item item-input">
+          <span class="input-label">Password</span>
+          <input type="password" name="password" ng-model="data.password">
+        </label>
+      </div>
+      <div class="padding">
+        <button type="submit" class="button button-block button-positive" ng-click="signUp()">
+          <span ng-show="!loading">Create Account</span>
+          <i ng-show="loading" class="ion-loading-b"></i>
+        </button>
+      </div>
+    </ion-content>
+  </ion-view>
+  <div class="bar bar-footer bar-assertive" ng-show="error">
+    <div class="title">{{ error.message }}</div>
+  </div>
+</form>

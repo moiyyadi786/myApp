@@ -20,7 +20,11 @@
     "multer": "*",
     "connect": "*",
     "mongoose": "*",
-    "mongoose-auto-increment": "*"
+    "mongoose-auto-increment": "*",
+    "passport": "*",
+    "jwt-simple": "*",
+    "passport-jwt": "*",
+    "bcrypt": "*"
   },
   "devDependencies": {
     "bower": "^1.3.3",

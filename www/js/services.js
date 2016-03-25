@@ -29,7 +29,7 @@ angular.module('starter.services', [])
     saveRequest: function(data){
       var post = $http({
         method: 'POST',
-        url: 'http://localhost:9000/book/save',
+        url: '/book/save',
         data: data
       });
       return post;
@@ -37,14 +37,14 @@ angular.module('starter.services', [])
     getMyBooks: function(){
       var books = $http({
           method: 'GET',
-          url: 'http://localhost:9000/books'
+          url: '/books'
       });
       return books;
     },
     getBookDetails: function(id){
      var book = $http({
           method: 'GET',
-          url: 'http://localhost:9000/book/'+id
+          url: '/book/'+id
       });
       return book;
     }
@@ -60,4 +60,67 @@ angular.module('starter.services', [])
       return null;
     }*/
   };
+})
+.service('LoginService', function($q, $http) {
+    return {
+        loginUser: function(username, password) {
+            var deferred = $q.defer();
+            var promise = deferred.promise;
+            var auth =  $http({
+                method: 'POST',
+                url: '/authenticate',
+                data: {username: username, password: password}
+            });
+
+            auth.then(
+              function(response){
+                if(response.data.success){
+                $http.defaults.headers.common.Authorization = response.data.token;
+                deferred.resolve('Welcome !');
+                return;
+                }
+                deferred.reject('Wrong credentials.');
+              },
+              function(){
+                 deferred.reject('Wrong credentials.');
+              }
+            );
+            promise.success = function(fn) {
+                promise.then(fn);
+                return promise;
+            }
+            promise.error = function(fn) {
+                promise.then(null, fn);
+                return promise;
+            }
+            return promise;
+        },
+        signUp: function(username, password, firstname){
+            var deferred = $q.defer();
+            var promise = deferred.promise;
+            var auth =  $http({
+                method: 'POST',
+                url: '/signup',
+                data: {username: username, password: password, firstname: firstname}
+            });
+
+            auth.then(
+              function(response){
+                 deferred.resolve('Welcome !');
+              },
+              function(){
+                 deferred.reject('Wrong credentials.');
+              }
+            );
+            promise.success = function(fn) {
+                promise.then(fn);
+                return promise;
+            }
+            promise.error = function(fn) {
+                promise.then(null, fn);
+                return promise;
+            }
+            return promise;      
+        }
+    }
 });

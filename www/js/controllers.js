@@ -1,5 +1,29 @@
 angular.module('starter.controllers', [])
 
+.controller('LoginCtrl', function($scope, LoginService, $ionicPopup, $state) {
+    $scope.data = {};
+ 
+   $scope.login = function() {
+        LoginService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
+            $state.go('tab.dash');
+        }).error(function(data) {
+            var alertPopup = $ionicPopup.alert({
+                title: 'Login failed!',
+                template: 'Please check your credentials!'
+            });
+        });
+    }
+    $scope.signUp = function(){
+      LoginService.signUp($scope.data.username, $scope.data.password, $scope.data.firstname).success(function(data) {
+            $state.go('tab.dash');
+        }).error(function(data) {
+            var alertPopup = $ionicPopup.alert({
+                title: 'Login failed!',
+                template: 'Please check your credentials!'
+            });
+        });
+    }
+})
 
 .controller('DashCtrl', function($scope, Books) {
     $scope.books = Books.all();
@@ -23,8 +47,11 @@ angular.module('starter.controllers', [])
       function(response){
         $scope.mybooks = response.data;
       },
-      function(reponse){
-        $scope.mybooks = [{"bookName": "Harry Potter"}];
+      function(response){
+        //$scope.mybooks = [{"bookName": "Harry Potter"}];
+        if(response.status == 403){
+          $state.go('login');
+        }
       }
   ).then(function(){
    $ionicLoading.hide();
