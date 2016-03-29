@@ -61,7 +61,7 @@ angular.module('starter.services', [])
     }*/
   };
 })
-.service('LoginService', function($q, $http) {
+.service('LoginService', function($q, $http, $window) {
     return {
         loginUser: function(username, password) {
             var deferred = $q.defer();
@@ -75,8 +75,9 @@ angular.module('starter.services', [])
             auth.then(
               function(response){
                 if(response.data.success){
-                $http.defaults.headers.common.Authorization = response.data.token;
-                deferred.resolve('Welcome !');
+                 $http.defaults.headers.common.Authorization = response.data.token;
+                 $window.localStorage['jwtToken'] = response.data.token;
+                 deferred.resolve('Welcome !');
                 return;
                 }
                 deferred.reject('Wrong credentials.');
@@ -107,6 +108,8 @@ angular.module('starter.services', [])
             auth.then(
               function(response){
                  deferred.resolve('Welcome !');
+                 $http.defaults.headers.common.Authorization = response.data.token;
+                 $window.localStorage['jwtToken'] = response.data.token;
               },
               function(){
                  deferred.reject('Wrong credentials.');

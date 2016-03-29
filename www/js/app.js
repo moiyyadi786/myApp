@@ -7,7 +7,10 @@
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'starter.directive'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, $window, $http) {
+  if($window.localStorage['jwtToken']){
+  $http.defaults.headers.common.Authorization = $window.localStorage['jwtToken'];
+  }  
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -24,7 +27,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
 })
 
 .config(function($stateProvider, $urlRouterProvider) {
-
   // Ionic uses AngularUI Router which uses the concept of states
   // Learn more here: https://github.com/angular-ui/ui-router
   // Set up the various states which the app can be in.
@@ -120,7 +122,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     }
   });
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/login');
+  $urlRouterProvider.otherwise('/tab/dash');
 
 })
 .config(['$ionicConfigProvider', function($ionicConfigProvider) {

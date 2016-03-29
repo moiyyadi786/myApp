@@ -7,11 +7,11 @@ var bodyParser = require('body-parser');
 var multer = require('multer');
 var errorHandler = require('errorhandler');
 var mongoose = require('mongoose');
-var jwt = require('jwt-simple');
 var passport = require('passport');
 var bcrypt = require('bcrypt');
 var Schema = mongoose.Schema;
 var JwtStrategy = require('passport-jwt').Strategy;
+var jwt = require('jwt-simple');
 var app = express();
 app.use(express.static(__dirname + '/www'));
 var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439/bookexchange');
@@ -19,6 +19,9 @@ var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439
 config = {
   'secret': 'secret',
 };
+
+var autoIncrement = require('mongoose-auto-increment');
+autoIncrement.initialize(connection);
 
 var UserSchema = new Schema({
   username: {
@@ -34,7 +37,7 @@ var UserSchema = new Schema({
     type: String
   }
 });
- 
+
 UserSchema.pre('save', function (next) {
     var user = this;
     if (this.isModified('password') || this.isNew) {
@@ -54,7 +57,9 @@ UserSchema.pre('save', function (next) {
         return next();
     }
 });
- 
+
+UserSchema.plugin(autoIncrement.plugin, { model: 'User', field: 'userId'});
+
 UserSchema.methods.comparePassword = function (passw, cb) {
     bcrypt.compare(passw, this.password, function (err, isMatch) {
         if (err) {
@@ -84,8 +89,6 @@ passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
   }));
 }
 
-var autoIncrement = require('mongoose-auto-increment');
-autoIncrement.initialize(connection);
 
 
 /*var CounterSchema = new Schema({
@@ -132,7 +135,9 @@ app.post('/signup', function(req, res) {
       if (err) {
         return res.json({success: false, msg: 'Username already exists.'});
       }
-      res.json({success: true, msg: 'Successful created new user.'});
+      app.token = jwt.encode(newUser, config.secret);
+          // return the information including token as JSON
+      res.json({success: true, token: app.token});
     });
   }
 });
@@ -185,7 +190,7 @@ app.get('/books', function(req, res){
   if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }
-  Book.find({}, function(err, Books){
+  Book.find({},'-_id -__v', function(err, Books){
   	if(err){
   		throw err;
   	}
