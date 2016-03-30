@@ -5,11 +5,17 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'starter.directive'])
+angular.module('starter', [
+  'ionic',
+  'angular-jwt',
+  'starter.controllers', 
+  'starter.services', 
+  'starter.directive'])
 
-.run(function($ionicPlatform, $window, $http) {
+.run(function($ionicPlatform, $window, $http, jwtHelper) {
   if($window.localStorage['jwtToken']){
   $http.defaults.headers.common.Authorization = $window.localStorage['jwtToken'];
+  console.log(jwtHelper.decodeToken($window.localStorage['jwtToken']));
   }  
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -25,7 +31,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     }
   });
 })
-
 .config(function($stateProvider, $urlRouterProvider) {
   // Ionic uses AngularUI Router which uses the concept of states
   // Learn more here: https://github.com/angular-ui/ui-router

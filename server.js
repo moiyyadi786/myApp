@@ -75,7 +75,7 @@ module.exports = function(passport){
 var opts = {};
 opts.secretOrKey = config.secret;
 passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
-    console.log(jwt_payload);
+    //console.log(jwt_payload);
     User.findOne({username: jwt_payload.username}, function(err, user) {
           if (err) {
               return done(err, false);
@@ -146,7 +146,7 @@ app.post('/signup', function(req, res) {
 app.post('/authenticate', function(req, res) {
   User.findOne({
     username: req.body.username
-  }, function(err, user) {
+  }, '-_id -__v',function(err, user) {
     if (err) throw err;
  
     if (!user) {
@@ -155,6 +155,9 @@ app.post('/authenticate', function(req, res) {
       // check if password matches
       user.comparePassword(req.body.password, function (err, isMatch) {
         if (isMatch && !err) {
+
+          user.password = null;
+          console.log(user);
           // if user is found and password is right create a token
           app.token = jwt.encode(user, config.secret);
           // return the information including token as JSON
