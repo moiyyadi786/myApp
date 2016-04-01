@@ -104,8 +104,9 @@ var bookSchema = new Schema({
   bookName: String,
   orderType: String,
   description: String,
-  created_at: Date,
-  updated_at: Date
+  creationDate: {type: Date, default: Date.now},
+  updatedDate: {type: Date, default: Date.now},
+  postedBy: String
 });
 
 bookSchema.plugin(autoIncrement.plugin, { model: 'Book', field: 'bookId' });
@@ -127,7 +128,9 @@ app.post('/signup', function(req, res) {
     var newUser = new User({
       username: req.body.username,
       password: req.body.password,
-      firstname: req.body.firstname
+      firstname: req.body.firstname,
+      creationDate: {type: Date, default: Date.now},
+      updatedDate: {type: Date, default: Date.now},
     });
     // save the user
     newUser.save(function(err) {
@@ -136,6 +139,7 @@ app.post('/signup', function(req, res) {
         return res.json({success: false, msg: 'Username already exists.'});
       }
       app.token = jwt.encode(newUser, config.secret);
+      app.user = newUser;
           // return the information including token as JSON
       res.json({success: true, token: app.token});
     });
@@ -157,6 +161,7 @@ app.post('/authenticate', function(req, res) {
         if (isMatch && !err) {
 
           user.password = null;
+          app.user = user;
           console.log(user);
           // if user is found and password is right create a token
           app.token = jwt.encode(user, config.secret);
@@ -190,9 +195,9 @@ app.get('/', function(req, res){
   res.redirect('/index.html');
 });
 app.get('/books', function(req, res){
-  if(!app.token || app.token !== req.headers.authorization){
+  /*if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
-  }
+  }*/
   Book.find({},'-_id -__v', function(err, Books){
   	if(err){
   		throw err;
@@ -200,14 +205,27 @@ app.get('/books', function(req, res){
   	res.json(Books)
   });
 });
+app.get('/mybooks', function(req, res){
+  if(!app.token || app.token !== req.headers.authorization){
+    return res.status(403).send({success: false, msg: 'No token provided.'});
+  }
+  Book.find({'postedBy': app.user.username},'-_id -__v', function(err, Books){
+    if(err){
+      throw err;
+    }
+    res.json(Books)
+  });
+});
 app.post('/book/save', function(req, res){
   if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }
+  console.log(app.user);
   var book = new Book({
   	bookName: req.body.bookName,
   	orderType: req.body.orderType,
-  	description: req.body.description
+  	description: req.body.description,
+    postedBy: app.user.username
   });
   book.save(function(err){
   	if(err){
@@ -217,9 +235,9 @@ app.post('/book/save', function(req, res){
   });
 });
 app.get('/book/:bookId', function(req, res){
-  if(!app.token || app.token !== req.headers.authorization){
+  /*if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
-  }
+  }*/
   Book.findOne({bookId:req.params.bookId}, function (err, book) {
   if (err) throw err;
   res.json(book);

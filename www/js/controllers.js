@@ -25,8 +25,25 @@ angular.module('starter.controllers', [])
     }
 })
 
-.controller('DashCtrl', function($scope, Books) {
-    $scope.books = Books.all();
+.controller('DashCtrl', function($scope, Books, $ionicLoading) {
+  var getAllBooks = Books.getAllBooks();
+  $scope.books = [];
+  $ionicLoading.show({
+      template: 'Loading...'
+  });
+  getAllBooks.then(
+      function(response){
+        $scope.books = response.data;
+      },
+      function(response){
+        $ionicPopup.alert({
+           title: 'Error',
+           content: 'Sorry! Error fetching data from server'
+        });
+      }
+  ).then(function(){
+   $ionicLoading.hide();
+  });
 })
 
 .controller('SearchCtrl', function($scope) {
@@ -39,13 +56,13 @@ angular.module('starter.controllers', [])
 
 .controller('AccountCtrl', function($scope, $state, Books, $ionicLoading) {
   var getMyBooks = Books.getMyBooks();
-  $scope.mybooks = [];
+  $scope.books = [];
   $ionicLoading.show({
       template: 'Loading...'
   });
   getMyBooks.then(
       function(response){
-        $scope.mybooks = response.data;
+        $scope.books = response.data;
       },
       function(response){
         //$scope.mybooks = [{"bookName": "Harry Potter"}];

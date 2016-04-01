@@ -31,3 +31,6 @@ body {
 .tab-title{
   font-weight: bold;
 }
+.button-footer{
+ bottom: 10px;
+}

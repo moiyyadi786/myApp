@@ -34,10 +34,17 @@ angular.module('starter.services', [])
       });
       return post;
     },
-    getMyBooks: function(){
+    getAllBooks: function(){
       var books = $http({
           method: 'GET',
           url: '/books'
+      });
+      return books;
+    },
+    getMyBooks: function(){
+      var books = $http({
+          method: 'GET',
+          url: '/mybooks'
       });
       return books;
     },

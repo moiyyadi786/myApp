@@ -42,26 +42,24 @@ angular.module('starter.directive',[])
 .directive('ionBooksList', function(){
  return {
      restrict: 'E',
-     templateUrl: '/templates/my-listed-books.html',
+     templateUrl: '/templates/listed-books.html',
      link: function(scope, element, attrs){
         scope.showBookDetails = function(id){
             
         }
      },
      scope: {
-        mybooks: '=',
+        books: '=',
      }
  }
 })
-.directive('bookDetails', function($rootScope, $window){
+.directive('bookDetails', function($rootScope, $window, $ionicHistory, $ionicViewService){
   return {
     restrict: 'A',
     link: function(scope, element, attr){
-        $rootScope.$ionicGoBack = function(){
-         //$state.go('tab.account');
-         $window.location.href = "#/tab/account";
+        scope.goBack = function(){
+         $ionicHistory.goBack();
          element.remove();
-         //
          }
       }
     }

@@ -117,7 +117,7 @@ angular.module('starter', [
         }
     }
   })
-  .state('tab.bookdetails',{
+  .state('bookdetails',{
     url: '/bookdetails/:id',
     views: {
         'book-details':{
