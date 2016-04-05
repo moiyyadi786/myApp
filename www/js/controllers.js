@@ -14,7 +14,7 @@ angular.module('starter.controllers', [])
         });
     }
     $scope.signUp = function(){
-      LoginService.signUp($scope.data.username, $scope.data.password, $scope.data.firstname).success(function(data) {
+      LoginService.signUp($scope.data.username, $scope.data.password, $scope.data.name).success(function(data) {
             $state.go('tab.dash');
         }).error(function(data) {
             var alertPopup = $ionicPopup.alert({
@@ -115,6 +115,10 @@ angular.module('starter.controllers', [])
       $scope.book = response.data;
     }
    );
+   $scope.goBack = function(){
+     $window.history.back();
+     element.remove();
+    }
 });
 
 

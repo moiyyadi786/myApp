@@ -58,7 +58,7 @@ angular.module('starter.directive',[])
     restrict: 'A',
     link: function(scope, element, attr){
         scope.goBack = function(){
-         $ionicHistory.goBack();
+         $window.history.back();
          element.remove();
          }
       }
@@ -70,7 +70,7 @@ angular.module('starter.directive',[])
     link: function(scope, element, attr){
         $rootScope.$ionicGoBack = function(){
          //$state.go('tab.account');
-         $window.location.href = "#/tab/account";
+          $window.history.back();
          element.remove();
          //
          }

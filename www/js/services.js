@@ -103,13 +103,13 @@ angular.module('starter.services', [])
             }
             return promise;
         },
-        signUp: function(username, password, firstname){
+        signUp: function(username, password, name){
             var deferred = $q.defer();
             var promise = deferred.promise;
             var auth =  $http({
                 method: 'POST',
                 url: '/signup',
-                data: {username: username, password: password, firstname: firstname}
+                data: {username: username, password: password, name: name}
             });
 
             auth.then(

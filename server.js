@@ -15,7 +15,7 @@ var jwt = require('jwt-simple');
 var app = express();
 app.use(express.static(__dirname + '/www'));
 var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439/bookexchange');
-
+var ObjectId = mongoose.Types.ObjectId;
 config = {
   'secret': 'secret',
 };
@@ -33,7 +33,7 @@ var UserSchema = new Schema({
         type: String,
         required: true
     },
-  firstname: {
+  name: {
     type: String
   }
 });
@@ -106,7 +106,7 @@ var bookSchema = new Schema({
   description: String,
   creationDate: {type: Date, default: Date.now},
   updatedDate: {type: Date, default: Date.now},
-  postedBy: String
+  postedBy: {type: Schema.Types.ObjectId, ref: 'User'}
 });
 
 bookSchema.plugin(autoIncrement.plugin, { model: 'Book', field: 'bookId' });
@@ -126,9 +126,10 @@ app.post('/signup', function(req, res) {
     res.json({success: false, msg: 'Please pass name and password.'});
   } else {
     var newUser = new User({
+      //_id: req.body.username,
       username: req.body.username,
       password: req.body.password,
-      firstname: req.body.firstname,
+      name: req.body.name,
       creationDate: {type: Date, default: Date.now},
       updatedDate: {type: Date, default: Date.now},
     });
@@ -150,7 +151,7 @@ app.post('/signup', function(req, res) {
 app.post('/authenticate', function(req, res) {
   User.findOne({
     username: req.body.username
-  }, '-_id -__v',function(err, user) {
+  }, '-__v',function(err, user) {
     if (err) throw err;
  
     if (!user) {
@@ -209,10 +210,14 @@ app.get('/mybooks', function(req, res){
   if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }
-  Book.find({'postedBy': app.user.username},'-_id -__v', function(err, Books){
+  //var user = new ObjectId.createFrom(app.user._id);
+  Book.find({'postedBy': ObjectId(app.user._id)},'-_id -__v')
+  .populate('postedBy', '-_id -password -__v')
+  .exec(function(err, Books){
     if(err){
       throw err;
     }
+    //console.log(Books);
     res.json(Books)
   });
 });
@@ -220,12 +225,11 @@ app.post('/book/save', function(req, res){
   if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }
-  console.log(app.user);
   var book = new Book({
   	bookName: req.body.bookName,
   	orderType: req.body.orderType,
   	description: req.body.description,
-    postedBy: app.user.username
+    postedBy: app.user._id
   });
   book.save(function(err){
   	if(err){
@@ -238,7 +242,9 @@ app.get('/book/:bookId', function(req, res){
   /*if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }*/
-  Book.findOne({bookId:req.params.bookId}, function (err, book) {
+  Book.findOne({bookId:req.params.bookId},'-_id -__v')
+  .populate('postedBy', '-_id -password -__v')
+  .exec(function(err, book) {
   if (err) throw err;
   res.json(book);
   });
