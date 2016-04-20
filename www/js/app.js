@@ -15,7 +15,7 @@ angular.module('starter', [
 .run(function($ionicPlatform, $window, $http, jwtHelper) {
   if($window.localStorage['jwtToken']){
   $http.defaults.headers.common.Authorization = $window.localStorage['jwtToken'];
-  console.log(jwtHelper.decodeToken($window.localStorage['jwtToken']));
+  //console.log(jwtHelper.decodeToken($window.localStorage['jwtToken']));
   }  
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard

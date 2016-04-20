@@ -1,5 +1,13 @@
-<ion-view view-title="New Arrivals" cache-view='false'>
+<ion-view view-title="New Arrivals" cache-view='false' books="books">
   <ion-content>
+    <div class="bar bar-header item-input-inset">
+        <ion-search placeholder="Search a book" books="books" fetch-books="fetchBooks()" filter="search" class="col-60"></ion-search>
+	        <select name="" class="col-offset-10 item item-input item-select">
+		        <option value="buy">Buy Request</option>
+		        <option value="sell">Sell Request</option>
+		        <option value="">Both</option>
+	        </select>
+    </div>
   <ion-books-list books="books">
   </ion-books-list>
   </ion-content>

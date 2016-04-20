@@ -1,47 +1,57 @@
 angular.module('starter.directive',[])
-.directive('ionSearch', function() {
+.directive('ionSearch', function($ionicPopup, $ionicLoading, Books) {
     return {
         restrict: 'E',
         replace: true,
         scope: {
-            getData: '&source',
-            model: '=?',
-            search: '=?filter'
+            books: '=',
+            fetchBooks: '&'
+            /*model: '=books',
+            search: '=?filter'*/
         },
         link: function(scope, element, attrs) {
             attrs.minLength = attrs.minLength || 0;
             scope.placeholder = attrs.placeholder || '';
             scope.search = {value: ''};
-
             if (attrs.class)
-                element.addClass(attrs.class);
+              element.addClass(attrs.class);
+                //scope.$watch('search.value', function (newValue, oldValue, scope) {
+              scope.clearSearch = function() {
+              scope.search.value = '';
+              scope.searchBooks(scope.search.value);
+             };
+             scope.searchBooks = function(newValue){
+                  $ionicLoading.show({
+                      template: 'Loading...'
+                  });
+                  var searchBooks = Books.searchBooks(newValue);
+                  searchBooks.success(
+                    function(response){
+                      scope.books = response;
+                    }).error(
+                    function(response){
+                      $ionicLoading.hide();
+                      $ionicPopup.alert({
+                        title: 'Error',
+                        template: 'Error Fetching data'
+                        })
+                    }).then(function(){
+                    $ionicLoading.hide();
+                 });
+              }
 
-            if (attrs.source) {
-                scope.$watch('search.value', function (newValue, oldValue) {
-                    if (newValue.length > attrs.minLength) {
-                        scope.getData({str: newValue}).then(function (results) {
-                            scope.model = results;
-                        });
-                    } else {
-                        scope.model = [];
-                    }
-                });
-            }
-
-            scope.clearSearch = function() {
-                scope.search.value = '';
-            };
         },
-        template: '<div class="item-input-wrapper">' +
-                    '<i class="icon ion-android-search"></i>' +
+        template: '<div class="item-input-wrapper no-padd">' +            
                     '<input type="search" placeholder="{{placeholder}}" ng-model="search.value">' +
                     '<i ng-if="search.value.length > 0" ng-click="clearSearch()" class="icon ion-close"></i>' +
+                    '<button class="button button-small col-offset-10 button-calm" ng-click="searchBooks(search.value)"><i class="icon ion-search pull-right"></i></button>' +
                   '</div>'
     };
 })
 .directive('ionBooksList', function(){
  return {
      restrict: 'E',
+     replace: true,
      templateUrl: '/templates/listed-books.html',
      link: function(scope, element, attrs){
         scope.showBookDetails = function(id){
@@ -49,7 +59,7 @@ angular.module('starter.directive',[])
         }
      },
      scope: {
-        books: '=',
+        books: '='
      }
  }
 })

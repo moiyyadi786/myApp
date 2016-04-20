@@ -25,13 +25,14 @@ angular.module('starter.controllers', [])
     }
 })
 
-.controller('DashCtrl', function($scope, Books, $ionicLoading) {
-  var getAllBooks = Books.getAllBooks();
+.controller('DashCtrl', function($scope, Books, $ionicLoading, $ionicPopup) {
   $scope.books = [];
   $ionicLoading.show({
       template: 'Loading...'
   });
-  getAllBooks.then(
+  $scope.fetchBooks = function(){
+    $scope.getAllBooks = Books.getAllBooks();
+    $scope.getAllBooks.then(
       function(response){
         $scope.books = response.data;
       },
@@ -42,8 +43,11 @@ angular.module('starter.controllers', [])
         });
       }
   ).then(function(){
-   $ionicLoading.hide();
+   $ionicLoading.hide(); 
+
   });
+ };
+ $scope.fetchBooks();
 })
 
 .controller('SearchCtrl', function($scope) {
@@ -61,8 +65,8 @@ angular.module('starter.controllers', [])
       template: 'Loading...'
   });
   getMyBooks.then(
-      function(response){
-        $scope.books = response.data;
+      function(data){
+        $scope.books = data;
       },
       function(response){
         //$scope.mybooks = [{"bookName": "Harry Potter"}];
@@ -85,6 +89,71 @@ angular.module('starter.controllers', [])
    $scope.buy = false;
    $scope.sell = false;
    $scope.fields = {};
+   /*$scope.takePhoto = function () {
+            $ionicScrollDelegate.scrollTop();
+            console.log('fired camera');
+            $scope.uploadList = false;
+            $ionicPlatform.ready(function() {
+                var options = {
+                    quality: 100,
+                    destinationType: Camera.DestinationType.DATA_URL,
+                    sourceType: Camera.PictureSourceType.CAMERA,
+                    allowEdit: false,
+                    encodingType: Camera.EncodingType.PNG,
+                    targetWidth: 800,
+                    targetHeight: 1100,
+                    popoverOptions: CameraPopoverOptions,
+                    saveToPhotoAlbum: false
+                };
+                $cordovaCamera.getPicture(options).then(function (imageData) {
+                    $ionicLoading.show({
+                        template: 'Processing Image',
+                        duration: 2000
+                    });
+                    $scope.image = "data:image/png;base64," + imageData;
+                    if (ionic.Platform.isAndroid() === true) {
+                        $scope.Data.Image = LZString.compressToUTF16($scope.image);
+                        $scope.Data.isCompressed = 1;
+                    } else {
+                        $scope.Data.Image = $scope.image;
+                        $scope.Data.isCompressed = 0;
+                    }
+                    if ($scope.tutorial) {
+                        $scope.showAlert("Instructions: Step 3", '<div class="center">Now that you have taken a photo of the POD form, you must upload it to the server. Press the upload doc button in the bottom right of the screen.</div>');
+                    }
+                    $scope.on('')
+                }, function (err) {
+                    console.log(err);
+                });
+            }, false);
+        };
+
+   $scope.UploadDoc = function () {
+            var req = {
+                method: 'POST',
+                url: ffService.baseUrlAuth + 'cc/upload',
+                headers: {
+                    'x-access-token': ffService.token
+                },
+                data: $scope.Data
+            };
+            if ($scope.Data.Image === null || $scope.Data.Value === '') {
+                $scope.showAlert("Uh Oh!", '<div class="center">Please take a photo of your document before attempting an upload.</div>');
+            } else {
+                $http(req).success(function (data, status, headers, config) {
+                    localStorage.setItem('tutorial', false);
+                    $scope.tutorial = false;
+                    $scope.getUploads($scope.PODOrder.OrderNo);
+                    $scope.showAlert("Success!", '<div class="center">Your Document has been successfully uploaded!</div>');
+                    $scope.uploadList = true;
+                }).error(function (data, status, headers, config) {
+                    $rootScope.$broadcast('loading:hide');
+                    $scope.showAlert("Something went wrong!", '<div class="center">Please make sure you have an internet connection and try again.</div>');
+                }).then(function(data, status, headers, config){
+                    $scope.Data.Image = null;
+                });
+            }
+    };*/
    $scope.submit = function(){
      var data = $scope.fields;
      var post = Books.saveRequest(data);

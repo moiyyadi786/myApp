@@ -1,5 +1,5 @@
 angular.module('starter.services', [])
-.factory('Books', function($http) {
+.factory('Books', function($http, $q) {
   // Might use a resource here that returns a JSON array
 
   // Some fake testing data
@@ -41,12 +41,41 @@ angular.module('starter.services', [])
       });
       return books;
     },
+    searchBooks: function(searchString){
+      var books =$http({
+        method: 'GET',
+        url: '/books?search='+searchString
+      });
+      return books;
+    },
     getMyBooks: function(){
+      var deferred = $q.defer();
+      var promise = deferred.promise;
       var books = $http({
           method: 'GET',
           url: '/mybooks'
       });
-      return books;
+      books.then(
+        function(response){
+          if(response.data){        
+          deferred.resolve(response.data);
+          return;
+          }
+          deferred.reject(response);
+        },
+        function(response){
+           deferred.reject(response);
+        }
+      );
+      promise.success = function(fn) {
+          promise.then(fn);
+          return promise;
+      }
+      promise.error = function(fn) {
+          promise.then(null, fn);
+          return promise;
+      }
+      return promise;
     },
     getBookDetails: function(id){
      var book = $http({

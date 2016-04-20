@@ -199,7 +199,13 @@ app.get('/books', function(req, res){
   /*if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }*/
-  Book.find({},'-_id -__v', function(err, Books){
+  var findObj = {};
+  if(req.query.search){
+    var re = new RegExp(req.query.search, 'i');
+    findObj = {"bookName": re};
+    console.log(findObj);
+  }
+  Book.find(findObj,'-_id -__v', function(err, Books){
   	if(err){
   		throw err;
   	}

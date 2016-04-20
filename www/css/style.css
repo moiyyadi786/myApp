@@ -34,3 +34,9 @@ body {
 .button-footer{
  bottom: 10px;
 }
+.pull-right{
+  float: right;
+}
+.no-padd{
+  padding: 0;
+}
