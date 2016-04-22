@@ -83,6 +83,14 @@ angular.module('starter.services', [])
           url: '/book/'+id
       });
       return book;
+    },
+    addBookToUser: function(bookId, interestType){
+      var bookUser = $http({
+        method: 'POST',
+        url: '/addbooktouser',
+        data: {'bookId': bookId, 'interestType': interestType}
+      });
+      return bookUser;
     }
     /*remove: function(chat) {
       chats.splice(chats.indexOf(chat), 1);

@@ -16,6 +16,7 @@ var app = express();
 app.use(express.static(__dirname + '/www'));
 var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439/bookexchange');
 var ObjectId = mongoose.Types.ObjectId;
+var async = require('async');
 config = {
   'secret': 'secret',
 };
@@ -110,8 +111,20 @@ var bookSchema = new Schema({
 });
 
 bookSchema.plugin(autoIncrement.plugin, { model: 'Book', field: 'bookId' });
-
 var Book = connection.model('Book', bookSchema);
+
+var bookUserSchema = new Schema({
+  bookId: Number,
+  userId: Number,
+  interestType: String,
+  creationDate: {type: Date, default: Date.now},
+  updatedDate: {type: Date, default: Date.now},
+  postedBy: {type: Schema.Types.ObjectId, ref: 'User'}
+});
+
+bookUserSchema.plugin(autoIncrement.plugin, { model: 'BookUser', field: 'bookUserId'});
+
+var BookUser = connection.model('BookUser', bookUserSchema); 
 
 module.exports = Book;
 app.use(morgan('dev'));
@@ -248,12 +261,56 @@ app.get('/book/:bookId', function(req, res){
   /*if(!app.token || app.token !== req.headers.authorization){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }*/
-  Book.findOne({bookId:req.params.bookId},'-_id -__v')
-  .populate('postedBy', '-_id -password -__v')
-  .exec(function(err, book) {
-  if (err) throw err;
-  res.json(book);
+  if(!app.token || app.token !== req.headers.authorization){
+    return res.status(403).send({success: false, msg: 'No token provided.'});
+  }
+
+  //var getBookDetails = function(callback) {
+    async.parallel([
+    function(cb) { 
+      //collection1.find(query1, cb) 
+      Book.findOne({bookId:req.params.bookId},'-_id -__v')
+      .populate('postedBy', '-_id -password -__v')
+      .exec(function(err, book) {
+      if (err) throw err;
+       console.log("Below is the book \n"+book);
+      cb(null, book);
+      });
+    },
+    function(cb) { 
+      //collection2.find(query2, cb)
+      BookUser.findOne({bookId: req.params.bookId,userId: app.user.userId})
+      .exec(function(err, bookUser) {
+      if (err) throw err;
+      console.log("Below is the book user \n"+bookUser);
+      cb(null, bookUser)
+      });
+    }
+    ], function(err, response) {
+      if (err) throw err;
+      res.json(response);
+      // something went wrong
+    });
+
+});
+app.post('/addbooktouser', function(req, res){
+  if(!app.token || app.token !== req.headers.authorization){
+    return res.status(403).send({success: false, msg: 'No token provided.'});
+  }
+  var bookUser = new BookUser({
+    bookId: req.body.bookId,
+    userId: app.user.userId,
+    postedBy: app.user._id,
+    interestType: req.body.interestType
+  });
+  bookUser.save(function(err){
+    if(err){
+      throw err;
+    }
+    res.json({
+      "message": "Added to you interest tab",
+     "bookId": req.body.bookId
+   });
   });
 });
-
 app.listen(process.env.PORT || 9000);

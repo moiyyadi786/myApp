@@ -1,11 +1,14 @@
 angular.module('starter.controllers', [])
 
-.controller('LoginCtrl', function($scope, LoginService, $ionicPopup, $state) {
+.controller('LoginCtrl', function($scope, LoginService, $ionicPopup, $state, $window) {
     $scope.data = {};
- 
-   $scope.login = function() {
+    $scope.goBack = function(){
+      $state.go('tab.dash');
+    }
+    $scope.login = function() {
         LoginService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
-            $state.go('tab.account');
+            //$state.go('tab.account');
+            $window.history.back(-1);
         }).error(function(data) {
             var alertPopup = $ionicPopup.alert({
                 title: 'Login failed!',
@@ -176,18 +179,38 @@ angular.module('starter.controllers', [])
     );
    }
 })
-.controller('BookDetailsCtrl', function($scope, $window, $rootScope, $stateParams, Books){
+.controller('BookDetailsCtrl', function($scope, $state,$window, $rootScope, $stateParams, Books){
    var book = Books.getBookDetails($stateParams.id);
-   console.log($scope.$element);
    book.then(
     function(response){
-      $scope.book = response.data;
+      $scope.book = response.data[0];
+      $scope.isInterested = response.data[1];
+    },
+    function(response){
+      if(response.status == 403){
+        $window.location = "/#/login";
+        $window.location.reload();
+      }
     }
    );
+   $scope.addBook = function(bookId, interestType){
+    Books.addBookToUser(bookId, interestType)
+    .then(
+    function(response){
+      $scope.isInterested = true;
+    },
+    function(response){
+      if(response.status == 403){
+        $window.location = "/#/login";
+        $window.location.reload();
+      }
+    }
+    );
+   },
    $scope.goBack = function(){
      $window.history.back();
      element.remove();
-    }
+   }
 });
 
 
