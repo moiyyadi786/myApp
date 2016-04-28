@@ -67,10 +67,12 @@ angular.module('starter.directive',[])
   return {
     restrict: 'A',
     link: function(scope, element, attr){
+        scope.$on("$stateChangeStart", function(){
+          element.remove();
+        });
         scope.goBack = function(){
          $window.history.back();
-         element.remove();
-         }
+        }
       }
     }
 })
@@ -78,12 +80,9 @@ angular.module('starter.directive',[])
   return {
     restrict: 'A',
     link: function(scope, element, attr){
-        $rootScope.$ionicGoBack = function(){
-         //$state.go('tab.account');
-          $window.history.back();
-         element.remove();
-         //
-         }
+        scope.$on("$stateChangeStart", function(){
+          element.remove();
+        });
       }
     }
 });

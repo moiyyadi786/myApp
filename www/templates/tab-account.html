@@ -1,4 +1,25 @@
 <ion-view view-title="My Catalouge" cache-view="false">
+ <ion-header-bar class="bar">
+   <div class="tabs-striped tabs-top tabs-positive">
+    <div class="tabs">
+      <a class="tab-item {{isPostings}}" ng-click="fetchBooks('postings')">
+        Postings
+      </a>
+      <a class="tab-item {{isInterested}}" ng-click="fetchBooks('interests')">
+        Interests
+      </a>
+    </div>
+  </div> 
+   <!--ion-tabs class="tabs-striped tabs-positive pane tabs-standard">
+     <ion-tab class="tab-item-active" title="My Postings" ng-click="fetchBooks('postings')">
+     </ion-tab>
+
+     <ion-tab class="tab-item-active" title="My Interests" ng-click="fetchBooks('interests')">
+         <ion-nav-view name="about-page2"></ion-nav-view>
+     </ion-tab>
+  </ion-tabs-->
+  </ion-header-bar>
+ <ion-content class="has-header" style="top:88px">
   <!--ion-tabs class="tabs-top tabs-icon tabs-positive">
          <ion-tab title="Books Needed" href="#/tab/account/booksneeded">
            <ion-nav-view name="books-needed"></ion-nav-view>
@@ -7,8 +28,7 @@
              <ion-nav-view name=""></ion-nav-view>
          </ion-tab>
   </ion-tabs-->
-  <ion-content>
-  <ion-books-list books="books">
+  <ion-books-list books="books" class="top-10">
   </ion-books-list>
   </ion-content>
   <ion-footer-bar class="bar">

@@ -230,6 +230,7 @@ app.get('/mybooks', function(req, res){
     return res.status(403).send({success: false, msg: 'No token provided.'});
   }
   //var user = new ObjectId.createFrom(app.user._id);
+  if(req.query.type === "postings"){
   Book.find({'postedBy': ObjectId(app.user._id)},'-_id -__v')
   .populate('postedBy', '-_id -password -__v')
   .exec(function(err, Books){
@@ -239,6 +240,41 @@ app.get('/mybooks', function(req, res){
     //console.log(Books);
     res.json(Books)
   });
+  } else {
+   BookUser.find({userId: app.user.userId}, 'bookId')
+   .exec(function(err, Books){
+      if(err){
+        throw err;
+      }    
+    var interested = Books.map(function(book) {return book.bookId;});
+    Book.find(
+      {'bookId':
+        { $in: interested
+        }
+      }).exec(function(err, Books){
+          if(err){
+            throw err;
+          }
+        res.json(Books)  
+      })
+    });
+  /* Book.aggregate([
+       {
+         $match: { 
+          'bookId':{
+          $in: BookUser.find(
+            {
+              "userId": app.user.userId
+            }, 'bookId')
+            /*BookUser.find(
+              {
+                'postedBy': ObjectId(app.user._id)
+              }, 'bookId')
+            }
+           }
+         }
+      ], callback);*/
+  }
 });
 app.post('/book/save', function(req, res){
   if(!app.token || app.token !== req.headers.authorization){

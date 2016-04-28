@@ -17,11 +17,11 @@
     {{book.description}}
     </p>
     <p>
-    Posted By: {{book.postedBy.name}}
+    Posted By: {{isMe || book.postedBy.name}}
     </p>
   </div>
 </div>
-<div class="padding">
+<div class="padding" ng-hide="isPostedByMe">
     <button type="button" ng-show="!isInterested" class="button button-block button-positive"  ng-click="addBook(book.bookId, book.orderType)"><i class="icon ion-social-buffer"></i> <span class="col-offset-5">Add to my Interest list</span></button>
     <button type="button" class="button button-block button-assertive" ng-show="isInterested" ng-click="removeBook(book.bookId)"><span>Remove from my interest list</button>
 </div>

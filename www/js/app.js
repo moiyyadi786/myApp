@@ -12,9 +12,12 @@ angular.module('starter', [
   'starter.services', 
   'starter.directive'])
 
-.run(function($ionicPlatform, $window, $http, jwtHelper) {
+.run(function($ionicPlatform, $window, $http, jwtHelper, $rootScope,$ionicHistory) {
   if($window.localStorage['jwtToken']){
   $http.defaults.headers.common.Authorization = $window.localStorage['jwtToken'];
+  if(typeof user == "undefined"){
+  user = jwtHelper.decodeToken($window.localStorage['jwtToken']);
+  }
   //console.log(jwtHelper.decodeToken($window.localStorage['jwtToken']));
   }  
   $ionicPlatform.ready(function() {
@@ -56,10 +59,21 @@ angular.module('starter', [
     templateUrl: 'templates/tabs.html'
   })
 
+  .state('bookdetails',{
+    url: '/bookdetails/:id',
+    cache: false,
+    views: {
+        'book-details':{
+          templateUrl: 'templates/book-details.html',
+          controller: 'BookDetailsCtrl'
+        }
+    }
+  })
   // Each tab has its own nav history stack:
 
   .state('tab.dash', {
     url: '/dash',
+    reload: true,
     views: {
       'tab-dash': {
         templateUrl: 'templates/tab-dash.html',
@@ -100,6 +114,7 @@ angular.module('starter', [
 
   .state('tab.account.booksneeded', {
     url: '/booksneeded',
+    cache: false,
     views: {
       'books-needed': {
         templateUrl: 'templates/books-needed.html',
@@ -107,22 +122,13 @@ angular.module('starter', [
       }
     }
   })
-
   .state('tab.placeneworder',{
     url: '/placeneworder',
+    cache: false,
     views: {
         'place-new-order':{
           templateUrl: 'templates/place-new-order.html',
           controller: 'PlaceNewOrderCtrl'
-        }
-    }
-  })
-  .state('bookdetails',{
-    url: '/bookdetails/:id',
-    views: {
-        'book-details':{
-          templateUrl: 'templates/book-details.html',
-          controller: 'BookDetailsCtrl'
         }
     }
   });

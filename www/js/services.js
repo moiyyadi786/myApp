@@ -48,12 +48,12 @@ angular.module('starter.services', [])
       });
       return books;
     },
-    getMyBooks: function(){
+    getMyBooks: function(type){
       var deferred = $q.defer();
       var promise = deferred.promise;
       var books = $http({
           method: 'GET',
-          url: '/mybooks'
+          url: '/mybooks?type='+type
       });
       books.then(
         function(response){
