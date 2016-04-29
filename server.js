@@ -17,6 +17,20 @@ app.use(express.static(__dirname + '/www'));
 var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439/bookexchange');
 var ObjectId = mongoose.Types.ObjectId;
 var async = require('async');
+var nodemailer = require('nodemailer');
+var smtpTransport = require("nodemailer-smtp-transport");
+// create reusable transporter object using the default SMTP transport
+var transporter = nodemailer.createTransport(smtpTransport({
+    host : "smtp.mailgun.org",
+    secureConnection : false,
+    port: 587,
+    auth : {
+        user : "postmaster@eya-apps.com",
+        pass : "6df196b9fef61fa3d445f3601832cf08"
+    }
+}));
+//nodemailer.createTransport('smtp.mailgun.org://postmaster@eya-apps.com:6df196b9fef61fa3d445f3601832cf08');
+
 config = {
   'secret': 'secret',
 };
@@ -36,7 +50,9 @@ var UserSchema = new Schema({
     },
   name: {
     type: String
-  }
+  },
+  creationDate: {type: Date, default: Date.now},
+  updatedDate: {type: Date, default: Date.now}
 });
 
 UserSchema.pre('save', function (next) {
@@ -61,6 +77,8 @@ UserSchema.pre('save', function (next) {
 
 UserSchema.plugin(autoIncrement.plugin, { model: 'User', field: 'userId'});
 
+var User = connection.model('User', UserSchema);
+
 UserSchema.methods.comparePassword = function (passw, cb) {
     bcrypt.compare(passw, this.password, function (err, isMatch) {
         if (err) {
@@ -70,7 +88,6 @@ UserSchema.methods.comparePassword = function (passw, cb) {
     });
 };
  
-var User = connection.model('User', UserSchema);
 module.exports = User;
 module.exports = function(passport){
 var opts = {};
@@ -142,9 +159,7 @@ app.post('/signup', function(req, res) {
       //_id: req.body.username,
       username: req.body.username,
       password: req.body.password,
-      name: req.body.name,
-      creationDate: {type: Date, default: Date.now},
-      updatedDate: {type: Date, default: Date.now},
+      name: req.body.name
     });
     // save the user
     newUser.save(function(err) {
@@ -155,7 +170,9 @@ app.post('/signup', function(req, res) {
       app.token = jwt.encode(newUser, config.secret);
       app.user = newUser;
           // return the information including token as JSON
+      sendEmail(req.body.username, req.body.name);
       res.json({success: true, token: app.token});
+
     });
   }
 });
@@ -349,4 +366,24 @@ app.post('/addbooktouser', function(req, res){
    });
   });
 });
+sendEmail = function(email, name){
+
+// setup e-mail data with unicode symbols
+var mailOptions = {
+    from: 'admin@eya-apps.com', // sender address
+    to: email, // list of receivers
+    subject: 'Exchange Book Registration', // Subject line
+    //text: 'Hello world', // plaintext body
+    html: 'Hi '+ name +', <br><br>You registration with Exchange Book is successfull!!.<br><br> Regards,<br>Admin.' // html body
+};
+
+// send mail with defined transport object
+//console.log(transporter);
+transporter.sendMail(mailOptions, function(error, info){
+    if(error){
+        return console.log(error);
+    }
+    console.log('Message sent: ' + info.response);
+});
+}
 app.listen(process.env.PORT || 9000);

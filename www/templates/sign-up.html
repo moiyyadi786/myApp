@@ -1,26 +1,31 @@
-<form ua-signup>
+<form ua-signup name="signupForm">
   <ion-view title="Sign Up">
     <ion-content>
       <div class="list list-inset">
         <label class="item item-input">
           <span class="input-label">Name</span>
-          <input type="text" name="name" ng-model="data.name">
+          <input type="text" name="name" ng-model="data.name" required>
         </label>
         <label class="item item-input">
-          <span class="input-label">Username</span>
-          <input type="text" name="username" ua-is-email ng-model="data.username">
+          <span class="input-label">Username(Email)</span>
+          <input type="email" name="username" ua-is-email ng-model="data.username" ng-minlength="5" required>
         </label>
         <label class="item item-input">
           <span class="input-label">Password</span>
-          <input type="password" name="password" ng-model="data.password">
+          <input type="password" name="password" ng-model="data.password" required>
         </label>
       </div>
       <div class="padding">
-        <button type="submit" class="button button-block button-positive" ng-click="signUp()">
+        <button type="submit" class="button button-block button-positive" ng-disabled="signupForm.$invalid" ng-click="signUp()">
           <span ng-show="!loading">Create Account</span>
           <i ng-show="loading" class="ion-loading-b"></i>
         </button>
       </div>
+      <div class="padding">
+            <p ng-show="signupForm.name.$error.required">* Name is Required</p>
+            <p ng-show="signupForm.username.$error.required">* Username is required and should be an email</p>
+            <p ng-show="signupForm.password.$error.required">* Password is required</p>
+        </div>
     </ion-content>
   </ion-view>
   <div class="bar bar-footer bar-assertive" ng-show="error">

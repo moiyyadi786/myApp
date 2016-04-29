@@ -25,7 +25,9 @@
     "jwt-simple": "*",
     "passport-jwt": "*",
     "bcrypt": "*",
-    "async": "*"
+    "async": "*",
+    "nodemailer": "*",
+    "nodemailer-smtp-transport": "*"
   },
   "devDependencies": {
     "bower": "^1.3.3",
