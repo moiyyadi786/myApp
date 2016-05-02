@@ -19,6 +19,10 @@ var ObjectId = mongoose.Types.ObjectId;
 var async = require('async');
 var nodemailer = require('nodemailer');
 var smtpTransport = require("nodemailer-smtp-transport");
+var autoIncrement = require('mongoose-auto-increment');
+autoIncrement.initialize(connection);
+var User = require('./model/user')(mongoose, connection, autoIncrement, Schema, bcrypt);
+var Message = require('./model/message')(mongoose, connection, autoIncrement, Schema);
 // create reusable transporter object using the default SMTP transport
 var transporter = nodemailer.createTransport(smtpTransport({
     host : "smtp.mailgun.org",
@@ -35,60 +39,7 @@ config = {
   'secret': 'secret',
 };
 
-var autoIncrement = require('mongoose-auto-increment');
-autoIncrement.initialize(connection);
 
-var UserSchema = new Schema({
-  username: {
-        type: String,
-        unique: true,
-        required: true
-    },
-  password: {
-        type: String,
-        required: true
-    },
-  name: {
-    type: String
-  },
-  creationDate: {type: Date, default: Date.now},
-  updatedDate: {type: Date, default: Date.now}
-});
-
-UserSchema.pre('save', function (next) {
-    var user = this;
-    if (this.isModified('password') || this.isNew) {
-        bcrypt.genSalt(10, function (err, salt) {
-            if (err) {
-                return next(err);
-            }
-            bcrypt.hash(user.password, salt, function (err, hash) {
-                if (err) {
-                    return next(err);
-                }
-                user.password = hash;
-                next();
-            });
-        });
-    } else {
-        return next();
-    }
-});
-
-UserSchema.plugin(autoIncrement.plugin, { model: 'User', field: 'userId'});
-
-var User = connection.model('User', UserSchema);
-
-UserSchema.methods.comparePassword = function (passw, cb) {
-    bcrypt.compare(passw, this.password, function (err, isMatch) {
-        if (err) {
-            return cb(err);
-        }
-        cb(null, isMatch);
-    });
-};
- 
-module.exports = User;
 module.exports = function(passport){
 var opts = {};
 opts.secretOrKey = config.secret;
@@ -170,7 +121,14 @@ app.post('/signup', function(req, res) {
       app.token = jwt.encode(newUser, config.secret);
       app.user = newUser;
           // return the information including token as JSON
-      sendEmail(req.body.username, req.body.name);
+          var mailOptions = {
+            from: 'eExchangeBookAdmin', // sender address
+            to: req.body.username, // list of receivers
+            subject: 'Exchange Book Registration', // Subject line
+            //text: 'Hello world', // plaintext body
+            html: 'Hi '+ req.body.name +', <br><br>You registration with Exchange Book is successfull!!.<br><br> Regards,<br>Admin.' // html body
+        };
+      sendEmail(mailOptions);
       res.json({success: true, token: app.token});
 
     });
@@ -188,6 +146,7 @@ app.post('/authenticate', function(req, res) {
       res.send({success: false, msg: 'Authentication failed. User not found.'});
     } else {
       // check if password matches
+      console.log(user);
       user.comparePassword(req.body.password, function (err, isMatch) {
         if (isMatch && !err) {
 
@@ -326,7 +285,6 @@ app.get('/book/:bookId', function(req, res){
       .populate('postedBy', '-_id -password -__v')
       .exec(function(err, book) {
       if (err) throw err;
-       console.log("Below is the book \n"+book);
       cb(null, book);
       });
     },
@@ -335,8 +293,14 @@ app.get('/book/:bookId', function(req, res){
       BookUser.findOne({bookId: req.params.bookId,userId: app.user.userId})
       .exec(function(err, bookUser) {
       if (err) throw err;
-      console.log("Below is the book user \n"+bookUser);
       cb(null, bookUser)
+      });
+    },
+    function(cb){
+      Message.count({bookId: req.params.bookId}, function(err, count){
+       if (err) throw err;
+        cb(null, count);
+        console.log("the count "+count);   
       });
     }
     ], function(err, response) {
@@ -366,20 +330,50 @@ app.post('/addbooktouser', function(req, res){
    });
   });
 });
-sendEmail = function(email, name){
+app.post('/message/send', function(req, res){
+  var message = new Message({
+    bookId: req.body.bookId,
+    message: req.body.message
+  });
+  message.save(function(err){
+  if(err){
+    throw err;
+  }
+  console.log(req.body);
+  Book.findOne({bookId:req.body.bookId},'bookName postedBy')
+      .populate('postedBy', 'username')
+      .exec(function(err, book) {
+      if (err) throw err;
+      console.log(book);
+    var mailOptions = {
+    from: 'eExchangeUser', // sender address
+    to: book.postedBy.username, // list of receivers
+    subject: 'Interested in your posting for ' + book.bookName, // Subject line
+    html: req.body.message.replace(/[\n\r]/g, '<br>')
+  };
+  sendEmail(mailOptions, function(error, info){
+   if(error){
+    res.json({
+    "message": "Error sending your message"
+    });
+    return;  
+   }
+   res.json({
+    "message": "You message have been sent"
+   });
+  });
+ });
+});
+});
 
-// setup e-mail data with unicode symbols
-var mailOptions = {
-    from: 'admin@eya-apps.com', // sender address
-    to: email, // list of receivers
-    subject: 'Exchange Book Registration', // Subject line
-    //text: 'Hello world', // plaintext body
-    html: 'Hi '+ name +', <br><br>You registration with Exchange Book is successfull!!.<br><br> Regards,<br>Admin.' // html body
-};
+sendEmail = function(mailOptions, callback){
 
 // send mail with defined transport object
 //console.log(transporter);
 transporter.sendMail(mailOptions, function(error, info){
+    if(callback){
+      return callback(error, info);
+    }
     if(error){
         return console.log(error);
     }

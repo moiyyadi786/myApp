@@ -110,6 +110,7 @@ angular.module('starter.controllers', [])
    $scope.fields = {};
    $scope.submit = function(){
      var data = $scope.fields;
+     data.description = data.description.replace("\r\n", "\\r\\n");
      var post = Books.saveRequest(data);
      post.then(
          function(response){
@@ -124,13 +125,20 @@ angular.module('starter.controllers', [])
     );
    }
 })
-.controller('BookDetailsCtrl', function($scope, $state,$window, $rootScope, $stateParams, Books, $ionicHistory){
+.controller('BookDetailsCtrl', function($scope, $state,$window, $rootScope, $stateParams, Books, Messages, $ionicHistory, $ionicLoading, $ionicPopup){
    var book = Books.getBookDetails($stateParams.id);
    book.then(
     function(response){
       $scope.book = response.data[0];
       $scope.isInterested = response.data[1];
       $scope.isPostedByMe = user.userId == response.data[0].postedBy.userId;
+      if($scope.isPostedByMe){
+        $scope.messageCount = response.data[2];
+      }
+      $scope.book.description = $scope.book.description.replace(/[\n\r]/g, '<br>');
+      $scope.fields = {};
+      $scope.fields.message="Hi,\n\nI am interested in your post for the book " +$scope.book.bookName+".\n\nRegards,\n" + user.name;
+      $scope.showMessage = false;
       if($scope.isPostedByMe){
         $scope.isMe = "Me";
       }
@@ -143,6 +151,9 @@ angular.module('starter.controllers', [])
     }
    );
    $scope.addBook = function(bookId, interestType){
+    $ionicLoading.show({
+        template: 'Loading...'
+    });
     Books.addBookToUser(bookId, interestType)
     .then(
     function(response){
@@ -154,7 +165,35 @@ angular.module('starter.controllers', [])
         $window.location.reload();
       }
     }
-    );
+    ).then(function(){
+     $ionicLoading.hide();
+    });
+   }
+   $scope.showMessageDiv= function(){
+      $scope.showMessage = true;
+   }
+   $scope.messageUser = function(bookId, bookName){
+      $ionicLoading.show({
+        template: 'Loading...'
+      });   
+      Messages.sendMessage({bookId: bookId, message: $scope.fields.message})
+      .then(
+        function(response){
+         $ionicPopup.alert({
+             title: 'Success',
+             content: 'Your message have been sent successfully'
+          });
+        },
+        function(response){
+          $ionicPopup.alert({
+             title: 'Error',
+             content: 'Sorry! Error occured sending message try again later'
+          });
+        }
+      ).then(function(){
+        $scope.showMessage = false;
+       $ionicLoading.hide();
+    });
    }
 });
 

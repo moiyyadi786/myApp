@@ -13,17 +13,38 @@
     <h2>{{book.bookName}}</h2>
   </div>
   <div class="item item-body">
-    <p>
-    {{book.description}}
+    <p ng-bind-html = "book.description">
     </p>
     <p>
     Posted By: {{isMe || book.postedBy.name}}
     </p>
   </div>
 </div>
+<div class="padding" ng-show="isPostedByMe && messageCount">
+    <ion-button class="button button-block button-positive ios ion-android-textsms" ng-click=""><span class="col-offset-5"><span class="padding">Show Messages - {{messageCount}}</span></span></ion-button>
+</div>
+<ion-messages messages="messages">
+</ion-messages>
 <div class="padding" ng-hide="isPostedByMe">
     <button type="button" ng-show="!isInterested" class="button button-block button-positive"  ng-click="addBook(book.bookId, book.orderType)"><i class="icon ion-social-buffer"></i> <span class="col-offset-5">Add to my Interest list</span></button>
     <button type="button" class="button button-block button-assertive" ng-show="isInterested" ng-click="removeBook(book.bookId)"><span>Remove from my interest list</button>
+    <ion-button class="button button-block button-calm" ng-hide="showMessage" ng-click="showMessageDiv()"><span>Contact Seller</span></ion-button>
+</div>
+<div ng-class="padding" ng-show="showMessage">
+    <form name="sendMessage" novalidate>
+            <label class="item item-input">
+                <span class="input-label">Description</span>
+                <textarea rows=6 name="message" ng-model="fields.message" maxlength=250 required>
+                </textarea>
+            </label>
+        <div class="padding">
+            <!--p ng-show="sendMessage.message.$error.required">* Message is Required</p-->
+        </div>
+        <div class="padding">
+            <ion-button class="button button-block button-positive icon ion-paper-airplane" ng-disabled="sendMessage.$invalid" ng-click="messageUser(book.bookId, bookName)">   Send Message</ion-button>
+        </div>
+    </form>
+  </div>
 </div>
 </ion-content>
 </ion-view>

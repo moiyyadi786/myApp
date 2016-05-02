@@ -3,7 +3,7 @@ angular.module('starter.services', [])
   // Might use a resource here that returns a JSON array
 
   // Some fake testing data
-  var books = [{
+  /*var books = [{
     id: 0,
     name: 'Midnights Children',
     description: 'Author is Salman Rushdie',
@@ -20,7 +20,7 @@ angular.module('starter.services', [])
     name: 'A Fine Balance',
     description: 'Author is Rohinton Mistry',
     img: 'img/a-fine-balance.jpeg'
-  }];
+  }];*/
 
   return {
     all: function() {
@@ -91,7 +91,7 @@ angular.module('starter.services', [])
         data: {'bookId': bookId, 'interestType': interestType}
       });
       return bookUser;
-    }
+    },
     /*remove: function(chat) {
       chats.splice(chats.indexOf(chat), 1);
     },
@@ -104,6 +104,18 @@ angular.module('starter.services', [])
       return null;
     }*/
   };
+})
+.factory('Messages', function($http, $q){
+return {
+    sendMessage: function(data){
+      var message = $http({
+        method: 'POST',
+        url: '/message/send',
+        data: data
+      });
+      return message;
+    }
+  }
 })
 .service('LoginService', function($q, $http, $window) {
     return {
