@@ -278,7 +278,7 @@ app.get('/book/:bookId', function(req, res){
   }
 
   //var getBookDetails = function(callback) {
-    async.parallel([
+  async.parallel([
     function(cb) { 
       //collection1.find(query1, cb) 
       Book.findOne({bookId:req.params.bookId},'-_id -__v')
@@ -339,7 +339,6 @@ app.post('/message/send', function(req, res){
   if(err){
     throw err;
   }
-  console.log(req.body);
   Book.findOne({bookId:req.body.bookId},'bookName postedBy')
       .populate('postedBy', 'username')
       .exec(function(err, book) {
@@ -365,7 +364,41 @@ app.post('/message/send', function(req, res){
  });
 });
 });
+app.get('/messages/book/:bookId', function(req, res){
+  /*if(!app.token || app.token !== req.headers.authorization){
+    return res.status(403).send({success: false, msg: 'No token provided.'});
+  }*/
+  var o = {};
+  o.map = function(){ 
+      emit(this.bookId,{
+        messageId: this.messageId,
+        message: this.message.replace(/[\n\r]/g, '<br>'),
+        creationDate: this.creationDate
+      });
+  };
+  o.reduce = function(key, values){
+    var messages = []
+    for(var i=0;i<values.length;i++){
+      messages.push(values[i]);
+    }
+    return {messages: messages};
+  };
+  o.query = {bookId: req.params.bookId};
+  var startTime = Date.now();
+  var date = new Date();
+  Message.mapReduce(o, function(err, result){
+      res.json(result[0].value.messages);
+  });
+});
 
+app.delete('/message/:messageId', function(req, res){
+  Message.remove({messageId: req.params.messageId}, function(err){
+    if(err){
+      throw err;
+    }
+    res.json({message: 'success'});
+  })
+});
 sendEmail = function(mailOptions, callback){
 
 // send mail with defined transport object

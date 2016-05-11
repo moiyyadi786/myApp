@@ -114,6 +114,20 @@ return {
         data: data
       });
       return message;
+    },
+    getMessages: function(id){
+     var messages = $http({
+          method: 'GET',
+          url: '/messages/book/'+id
+      });
+      return messages;
+    },
+    deleteMessage: function(id){
+     var message = $http({
+          method: 'DELETE',
+          url: '/message/'+id
+      });
+      return message;      
     }
   }
 })

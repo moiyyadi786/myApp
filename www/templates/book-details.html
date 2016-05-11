@@ -1,4 +1,4 @@
-<ion-view view-title="Details for {{book.bookName}}" cache-view='false' id="book-detail-element" book-details>
+<ion-view view-title="Details for {{book.bookName}}" cache-view='false' id="book-detail-element" ng-init="messageShown = false" book-details>
 <ion-nav-bar>
 <ion-nav-buttons side="left">
      <button class="button back-button buttons button-clear header-item" ng-click="goBack()">
@@ -21,10 +21,9 @@
   </div>
 </div>
 <div class="padding" ng-show="isPostedByMe && messageCount">
-    <ion-button class="button button-block button-positive ios ion-android-textsms" ng-click=""><span class="col-offset-5"><span class="padding">Show Messages - {{messageCount}}</span></span></ion-button>
+    <ion-button class="button button-block button-positive ios ion-android-textsms" ng-click="getMessages(book.bookId)" ng-hide="messageShown"><span class="col-offset-5"><span class="padding">Show Messages - {{messageCount}}</span></span></ion-button>
+    <ion-button class="button button-block button-energized ios ion-android-textsms" ng-click="hideMessages()" ng-show="messageShown"><span class="col-offset-5"><span class="padding">Hide Messages</span></span></ion-button>
 </div>
-<ion-messages messages="messages">
-</ion-messages>
 <div class="padding" ng-hide="isPostedByMe">
     <button type="button" ng-show="!isInterested" class="button button-block button-positive"  ng-click="addBook(book.bookId, book.orderType)"><i class="icon ion-social-buffer"></i> <span class="col-offset-5">Add to my Interest list</span></button>
     <button type="button" class="button button-block button-assertive" ng-show="isInterested" ng-click="removeBook(book.bookId)"><span>Remove from my interest list</button>
@@ -46,5 +45,7 @@
     </form>
   </div>
 </div>
+<ion-messages messages="messages" {{orderBy : message.creationDate : reverse}}>
+</ion-messages>
 </ion-content>
 </ion-view>

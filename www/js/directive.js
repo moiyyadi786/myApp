@@ -63,7 +63,7 @@ angular.module('starter.directive',[])
      }
  }
 })
-.directive('bookDetails', function($rootScope, $window, $ionicHistory, $ionicViewService){
+.directive('bookDetails', function($rootScope, $window, $ionicHistory, $ionicViewService, $ionicLoading, $ionicPopup, Messages){
   return {
     restrict: 'A',
     link: function(scope, element, attr){
@@ -73,7 +73,67 @@ angular.module('starter.directive',[])
         scope.goBack = function(){
          $window.history.back();
         }
-      }
+        scope.getMessages = function(bookId){
+          console.log(bookId);
+          $ionicLoading.show({
+          template: 'Loading...'
+          });   
+          Messages.getMessages(bookId)
+          .then(
+          function(response){
+            scope.messages = response.data;
+            scope.messageShown = true;
+          },
+          function(response){
+            $ionicPopup.alert({
+               title: 'Error',
+               content: 'Sorry! Error occured sending message try again later'
+            });
+          }
+          ).then(function(){
+           scope.showMessage = false;
+           $ionicLoading.hide();
+          });         
+        }
+        scope.hideMessages = function(){
+          scope.messages = [];
+          scope.messageShown = false;
+        }
+      },
+     controller: ['$scope', function($scope){
+        this.deleteMessage = function(messageId){
+        $ionicLoading.show({
+          template: 'Loading...'
+        });   
+        Messages.deleteMessage(messageId)
+        .then(
+          function(response){
+           $ionicPopup.alert({
+               title: 'Success',
+               content: 'Your message is deleted'
+            });
+           var i =0;
+           $scope.messages.find(function(elem){
+              if(elem.messageId == messageId){
+              return true;
+              }
+              i++;
+            });
+           $scope.messages.splice(i, 1);
+           $scope.messageCount = $scope.messages.length;
+          },
+          function(response){
+            $ionicPopup.alert({
+               title: 'Error',
+               content: 'Sorry! Error occured sending message try again later'
+            });
+          }
+        ).then(function(){
+         $scope.showMessage = false;
+         $ionicLoading.hide();
+        });
+        }
+    }],
     }
 })
 .directive('placeNewOrder', function($rootScope, $window){
@@ -85,5 +145,21 @@ angular.module('starter.directive',[])
         });
       }
     }
+})
+.directive('ionMessages', function($compile, $parse, $templateCache){
+ return {
+       restrict: 'E',
+       require: ['^bookDetails'],
+       //replace: true,
+       templateUrl: '/templates/message-list.html',
+       scope: {
+          messages: '='
+       },
+      link: function (scope, element, attrs, ctrls) {        
+        scope.deleteMessage= function(messageId) {
+          ctrls[0].deleteMessage(messageId);
+        }
+      }
+  }
 });
     

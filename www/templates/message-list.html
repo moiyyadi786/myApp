@@ -1,0 +1,7 @@
+<ion-item class="item-icon-right" message-item ng-repeat="message in messages | orderBy: '-creationDate'" type="item-text-wrap">
+Posted on: {{message.creationDate | date:'MM/dd/yyyy @ h:mma'}} 
+<i class="icon ion-trash-b assertive pull-right" ng-click="deleteMessage(message.messageId)"></i>
+<hr>
+<span ng-bind-html="message.message">
+</span>
+</ion-item>
