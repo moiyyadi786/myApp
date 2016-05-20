@@ -6,11 +6,11 @@ angular.module('starter.controllers', [])
       $state.go('tab.dash');
     }
     $scope.login = function() {
-        LoginService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
+        LoginService.loginUser($scope.data.username, $scope.data.password).hurray(function(data) {
             //$state.go('tab.account');
             user = jwtHelper.decodeToken($window.localStorage['jwtToken']);
             $window.history.back(-1);
-        }).error(function(data) {
+        }).sad(function(data) {
             var alertPopup = $ionicPopup.alert({
                 title: 'Login failed!',
                 template: 'Please check your credentials!'

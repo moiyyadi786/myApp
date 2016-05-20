@@ -156,14 +156,14 @@ return {
                  deferred.reject('Wrong credentials.');
               }
             );
-            promise.success = function(fn) {
+            promise.sad = function(fn) {
+                promise.then(null, fn);
+            }
+            promise.hurray = function(fn) {
                 promise.then(fn);
                 return promise;
             }
-            promise.error = function(fn) {
-                promise.then(null, fn);
-                return promise;
-            }
+
             return promise;
         },
         signUp: function(username, password, name){

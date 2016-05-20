@@ -74,14 +74,18 @@ angular.module('starter.directive',[])
          $window.history.back();
         }
         scope.getMessages = function(bookId){
-          console.log(bookId);
           $ionicLoading.show({
-          template: 'Loading...'
+          template: 'Loading Messages'
           });   
           Messages.getMessages(bookId)
           .then(
           function(response){
-            scope.messages = response.data;
+            scope.messages = [];
+            if(response.data.messages){
+              scope.messages = response.data.messages;
+            } else {
+              scope.messages.push(response.data)
+            }
             scope.messageShown = true;
           },
           function(response){
@@ -155,7 +159,8 @@ angular.module('starter.directive',[])
        scope: {
           messages: '='
        },
-      link: function (scope, element, attrs, ctrls) {        
+      link: function (scope, element, attrs, ctrls) {
+        //element.focus();    
         scope.deleteMessage= function(messageId) {
           ctrls[0].deleteMessage(messageId);
         }

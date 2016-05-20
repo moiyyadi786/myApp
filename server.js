@@ -377,7 +377,7 @@ app.get('/messages/book/:bookId', function(req, res){
       });
   };
   o.reduce = function(key, values){
-    var messages = []
+    var messages = [];
     for(var i=0;i<values.length;i++){
       messages.push(values[i]);
     }
@@ -387,7 +387,8 @@ app.get('/messages/book/:bookId', function(req, res){
   var startTime = Date.now();
   var date = new Date();
   Message.mapReduce(o, function(err, result){
-      res.json(result[0].value.messages);
+     //console.log(result[0].value);
+      res.json(result[0].value);
   });
 });
 
