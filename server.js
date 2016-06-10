@@ -7,11 +7,9 @@ var bodyParser = require('body-parser');
 var multer = require('multer');
 var errorHandler = require('errorhandler');
 var mongoose = require('mongoose');
-var passport = require('passport');
 var bcrypt = require('bcrypt');
 var Schema = mongoose.Schema;
-var JwtStrategy = require('passport-jwt').Strategy;
-var jwt = require('jwt-simple');
+var jwt = require('jsonwebtoken');
 var app = express();
 app.use(express.static(__dirname + '/www'));
 var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439/bookexchange');
@@ -21,8 +19,9 @@ var nodemailer = require('nodemailer');
 var smtpTransport = require("nodemailer-smtp-transport");
 var autoIncrement = require('mongoose-auto-increment');
 autoIncrement.initialize(connection);
-var User = require('./model/user')(mongoose, connection, autoIncrement, Schema, bcrypt);
-var Message = require('./model/message')(mongoose, connection, autoIncrement, Schema);
+var User = require('./model/user-model')(mongoose, connection, autoIncrement, Schema, bcrypt);
+var Message = require('./model/message-model')(mongoose, connection, autoIncrement, Schema);
+var Book = require('./model/book-model')(mongoose, connection, autoIncrement, Schema);
 // create reusable transporter object using the default SMTP transport
 var transporter = nodemailer.createTransport(smtpTransport({
     host : "smtp.mailgun.org",
@@ -33,53 +32,11 @@ var transporter = nodemailer.createTransport(smtpTransport({
         pass : "6df196b9fef61fa3d445f3601832cf08"
     }
 }));
-//nodemailer.createTransport('smtp.mailgun.org://postmaster@eya-apps.com:6df196b9fef61fa3d445f3601832cf08');
-
 config = {
-  'secret': 'secret',
+  'secret': 'bookexchangewebauthentication',
 };
 
-
-module.exports = function(passport){
-var opts = {};
-opts.secretOrKey = config.secret;
-passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
-    //console.log(jwt_payload);
-    User.findOne({username: jwt_payload.username}, function(err, user) {
-          if (err) {
-              return done(err, false);
-          }
-          if (user) {
-              done(null, user);
-          } else {
-              done(null, false);
-          }
-      });
-  }));
-}
-
-
-
-/*var CounterSchema = new Schema({
-    _id: {type: String, required: true},
-    seq: { type: Number, default: 0 }
-});
-
-CounterSchema.plugin(autoIncrement.plugin, 'Counter');
-var Counter = mongoose.model('Counter', CounterSchema);
-*/
-// create a schema
-var bookSchema = new Schema({
-  bookName: String,
-  orderType: String,
-  description: String,
-  creationDate: {type: Date, default: Date.now},
-  updatedDate: {type: Date, default: Date.now},
-  postedBy: {type: Schema.Types.ObjectId, ref: 'User'}
-});
-
-bookSchema.plugin(autoIncrement.plugin, { model: 'Book', field: 'bookId' });
-var Book = connection.model('Book', bookSchema);
+app.set("secret", config.secret);
 
 var bookUserSchema = new Schema({
   bookId: Number,
@@ -94,7 +51,6 @@ bookUserSchema.plugin(autoIncrement.plugin, { model: 'BookUser', field: 'bookUse
 
 var BookUser = connection.model('BookUser', bookUserSchema); 
 
-module.exports = Book;
 app.use(morgan('dev'));
 app.use(methodOverride());
 app.use(session({ resave: true, saveUninitialized: true,
@@ -118,50 +74,53 @@ app.post('/signup', function(req, res) {
       if (err) {
         return res.json({success: false, msg: 'Username already exists.'});
       }
-      app.token = jwt.encode(newUser, config.secret);
+      var token = jwt.sign(user, app.get('secret'), {
+          expiresIn: '1h' // expires in 24 hours
+      });
       app.user = newUser;
           // return the information including token as JSON
-          var mailOptions = {
-            from: 'eExchangeBookAdmin', // sender address
-            to: req.body.username, // list of receivers
-            subject: 'Exchange Book Registration', // Subject line
-            //text: 'Hello world', // plaintext body
-            html: 'Hi '+ req.body.name +', <br><br>You registration with Exchange Book is successfull!!.<br><br> Regards,<br>Admin.' // html body
-        };
+      var mailOptions = {
+          from: 'eExchangeBookAdmin', // sender address
+          to: req.body.username, // list of receivers
+          subject: 'Exchange Book Registration', // Subject line
+          html: 'Hi '+ req.body.name +', <br><br>You registration with Exchange Book is successfull!!.<br><br> Regards,<br>Admin.' // html body
+      };
       sendEmail(mailOptions);
-      res.json({success: true, token: app.token});
-
+      res.json({success: true, token: token});
     });
   }
 });
  
 
 app.post('/authenticate', function(req, res) {
+
+  // find the user
   User.findOne({
     username: req.body.username
-  }, '-__v',function(err, user) {
-    if (err) throw err;
- 
-    if (!user) {
-      res.send({success: false, msg: 'Authentication failed. User not found.'});
-    } else {
-      // check if password matches
-      console.log(user);
-      user.comparePassword(req.body.password, function (err, isMatch) {
-        if (isMatch && !err) {
+  }, '-__v', function(err, user){
 
-          user.password = null;
-          app.user = user;
-          console.log(user);
-          // if user is found and password is right create a token
-          app.token = jwt.encode(user, config.secret);
-          // return the information including token as JSON
-          res.json({success: true, token: app.token});
-        } else {
-          res.send({success: false, msg: 'Authentication failed. Wrong password.'});
-        }
+  if (err) throw err;
+  if (!user) {
+    res.json({ success: false, message: 'Authentication failed. User not found.'});
+  } else if (user) {
+    user.comparePassword(req.body.password, function (err, isMatch) {
+      console.log(isMatch);
+      console.log(err);
+      if(isMatch && !err) {
+      var token = jwt.sign(user, app.get('secret'), {
+        expiresIn: '1h' // expires in 24 hours
       });
-    }
+      res.json({
+        success: true,
+        message: 'user authenticated',
+        token: token
+      });
+      app.user = user;   
+      } else {
+       res.send({success: false, msg: 'Authentication failed. Wrong password.'});
+      }
+    });
+   }
   });
 });
 
@@ -185,9 +144,6 @@ app.get('/', function(req, res){
   res.redirect('/index.html');
 });
 app.get('/books', function(req, res){
-  /*if(!app.token || app.token !== req.headers.authorization){
-    return res.status(403).send({success: false, msg: 'No token provided.'});
-  }*/
   var findObj = {};
   if(req.query.search){
     var re = new RegExp(req.query.search, 'i');
@@ -201,10 +157,46 @@ app.get('/books', function(req, res){
   	res.json(Books)
   });
 });
-app.get('/mybooks', function(req, res){
-  if(!app.token || app.token !== req.headers.authorization){
-    return res.status(403).send({success: false, msg: 'No token provided.'});
+
+
+var apiRoutes = express.Router(); 
+// route middleware to verify a token
+apiRoutes.use(function(req, res, next) {
+
+  // check header or url parameters or post parameters for token
+  var token = req.headers.authorization;
+  // decode token
+  if (token) {
+
+    // verifies secret and checks exp
+    jwt.verify(token, app.get('secret'), function(err, decoded) {      
+      if (err) {
+        res.status(403).send({ 
+          success: false
+        });
+      } else {
+        // if everything is good, save to request for use in other routes
+        req.decoded = decoded;
+        app.user = decoded._doc;   
+        next();
+      }
+    });
+
+  } else {
+    // if there is no token
+    // return an error
+    return res.status(403).send({ 
+        success: false, 
+        message: 'No token provided.' 
+    });
+    
   }
+});
+
+
+// apply the routes to our application with the prefix /api
+app.use('/api', apiRoutes);
+apiRoutes.get('/mybooks', function(req, res){
   //var user = new ObjectId.createFrom(app.user._id);
   if(req.query.type === "postings"){
   Book.find({'postedBy': ObjectId(app.user._id)},'-_id -__v')
@@ -234,28 +226,9 @@ app.get('/mybooks', function(req, res){
         res.json(Books)  
       })
     });
-  /* Book.aggregate([
-       {
-         $match: { 
-          'bookId':{
-          $in: BookUser.find(
-            {
-              "userId": app.user.userId
-            }, 'bookId')
-            /*BookUser.find(
-              {
-                'postedBy': ObjectId(app.user._id)
-              }, 'bookId')
-            }
-           }
-         }
-      ], callback);*/
   }
 });
-app.post('/book/save', function(req, res){
-  if(!app.token || app.token !== req.headers.authorization){
-    return res.status(403).send({success: false, msg: 'No token provided.'});
-  }
+apiRoutes.post('/book/save', function(req, res){
   var book = new Book({
   	bookName: req.body.bookName,
   	orderType: req.body.orderType,
@@ -269,14 +242,7 @@ app.post('/book/save', function(req, res){
   	res.json({bookName: req.body.bookName});
   });
 });
-app.get('/book/:bookId', function(req, res){
-  /*if(!app.token || app.token !== req.headers.authorization){
-    return res.status(403).send({success: false, msg: 'No token provided.'});
-  }*/
-  if(!app.token || app.token !== req.headers.authorization){
-    return res.status(403).send({success: false, msg: 'No token provided.'});
-  }
-
+apiRoutes.get('/book/:bookId', function(req, res){
   //var getBookDetails = function(callback) {
   async.parallel([
     function(cb) { 
@@ -310,10 +276,7 @@ app.get('/book/:bookId', function(req, res){
     });
 
 });
-app.post('/addbooktouser', function(req, res){
-  if(!app.token || app.token !== req.headers.authorization){
-    return res.status(403).send({success: false, msg: 'No token provided.'});
-  }
+apiRoutes.post('/addbooktouser', function(req, res){
   var bookUser = new BookUser({
     bookId: req.body.bookId,
     userId: app.user.userId,
@@ -330,7 +293,7 @@ app.post('/addbooktouser', function(req, res){
    });
   });
 });
-app.post('/message/send', function(req, res){
+apiRoutes.post('/message/send', function(req, res){
   var message = new Message({
     bookId: req.body.bookId,
     message: req.body.message
@@ -364,10 +327,7 @@ app.post('/message/send', function(req, res){
  });
 });
 });
-app.get('/messages/book/:bookId', function(req, res){
-  /*if(!app.token || app.token !== req.headers.authorization){
-    return res.status(403).send({success: false, msg: 'No token provided.'});
-  }*/
+apiRoutes.get('/messages/book/:bookId', function(req, res){
   var o = {};
   o.map = function(){ 
       emit(this.bookId,{
@@ -392,7 +352,7 @@ app.get('/messages/book/:bookId', function(req, res){
   });
 });
 
-app.delete('/message/:messageId', function(req, res){
+apiRoutes.delete('/message/:messageId', function(req, res){
   Message.remove({messageId: req.params.messageId}, function(err){
     if(err){
       throw err;

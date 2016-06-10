@@ -27,7 +27,8 @@
     "bcrypt": "*",
     "async": "*",
     "nodemailer": "*",
-    "nodemailer-smtp-transport": "*"
+    "nodemailer-smtp-transport": "*",
+    "jsonwebtoken":"*"
   },
   "devDependencies": {
     "bower": "^1.3.3",

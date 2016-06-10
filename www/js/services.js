@@ -29,7 +29,7 @@ angular.module('starter.services', [])
     saveRequest: function(data){
       var post = $http({
         method: 'POST',
-        url: '/book/save',
+        url: '/api/book/save',
         data: data
       });
       return post;
@@ -53,7 +53,7 @@ angular.module('starter.services', [])
       var promise = deferred.promise;
       var books = $http({
           method: 'GET',
-          url: '/mybooks?type='+type
+          url: '/api/mybooks?type='+type
       });
       books.then(
         function(response){
@@ -80,14 +80,14 @@ angular.module('starter.services', [])
     getBookDetails: function(id){
      var book = $http({
           method: 'GET',
-          url: '/book/'+id
+          url: '/api/book/'+id
       });
       return book;
     },
     addBookToUser: function(bookId, interestType){
       var bookUser = $http({
         method: 'POST',
-        url: '/addbooktouser',
+        url: '/api/addbooktouser',
         data: {'bookId': bookId, 'interestType': interestType}
       });
       return bookUser;
@@ -110,7 +110,7 @@ return {
     sendMessage: function(data){
       var message = $http({
         method: 'POST',
-        url: '/message/send',
+        url: '/api/message/send',
         data: data
       });
       return message;
@@ -118,14 +118,14 @@ return {
     getMessages: function(id){
      var messages = $http({
           method: 'GET',
-          url: '/messages/book/'+id
+          url: '/api/messages/book/'+id
       });
       return messages;
     },
     deleteMessage: function(id){
      var message = $http({
           method: 'DELETE',
-          url: '/message/'+id
+          url: '/api/message/'+id
       });
       return message;      
     }
