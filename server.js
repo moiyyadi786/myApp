@@ -15,41 +15,22 @@ app.use(express.static(__dirname + '/www'));
 var connection = mongoose.connect('mongodb://admin:admin@ds011439.mlab.com:11439/bookexchange');
 var ObjectId = mongoose.Types.ObjectId;
 var async = require('async');
-var nodemailer = require('nodemailer');
-var smtpTransport = require("nodemailer-smtp-transport");
 var autoIncrement = require('mongoose-auto-increment');
 autoIncrement.initialize(connection);
 var User = require('./model/user-model')(mongoose, connection, autoIncrement, Schema, bcrypt);
 var Message = require('./model/message-model')(mongoose, connection, autoIncrement, Schema);
 var Book = require('./model/book-model')(mongoose, connection, autoIncrement, Schema);
+var BookUser = require('./model/book-user-model')(mongoose, connection, autoIncrement, Schema);
+var transporter = require('./util/mail-util');
+var appUtil = require('./util/app-util');
 // create reusable transporter object using the default SMTP transport
-var transporter = nodemailer.createTransport(smtpTransport({
-    host : "smtp.mailgun.org",
-    secureConnection : false,
-    port: 587,
-    auth : {
-        user : "postmaster@eya-apps.com",
-        pass : "6df196b9fef61fa3d445f3601832cf08"
-    }
-}));
+
 config = {
   'secret': 'bookexchangewebauthentication',
 };
 
 app.set("secret", config.secret);
 
-var bookUserSchema = new Schema({
-  bookId: Number,
-  userId: Number,
-  interestType: String,
-  creationDate: {type: Date, default: Date.now},
-  updatedDate: {type: Date, default: Date.now},
-  postedBy: {type: Schema.Types.ObjectId, ref: 'User'}
-});
-
-bookUserSchema.plugin(autoIncrement.plugin, { model: 'BookUser', field: 'bookUserId'});
-
-var BookUser = connection.model('BookUser', bookUserSchema); 
 
 app.use(morgan('dev'));
 app.use(methodOverride());
@@ -85,7 +66,7 @@ app.post('/signup', function(req, res) {
           subject: 'Exchange Book Registration', // Subject line
           html: 'Hi '+ req.body.name +', <br><br>You registration with Exchange Book is successfull!!.<br><br> Regards,<br>Admin.' // html body
       };
-      sendEmail(mailOptions);
+      appUtil.sendEmail(mailOptions);
       res.json({success: true, token: token});
     });
   }
@@ -123,19 +104,6 @@ app.post('/authenticate', function(req, res) {
    }
   });
 });
-
-getToken = function (headers) {
-  if (headers && headers.authorization) {
-    var parted = headers.authorization.split(' ');
-    if (parted.length === 2) {
-      return parted[1];
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
-};
 
 app.get('/', function(req, res){
   if(!app.token || app.token !== req.headers.authorization){
@@ -313,8 +281,9 @@ apiRoutes.post('/message/send', function(req, res){
     subject: 'Interested in your posting for ' + book.bookName, // Subject line
     html: req.body.message.replace(/[\n\r]/g, '<br>')
   };
-  sendEmail(mailOptions, function(error, info){
+  appUtil.sendEmail(mailOptions, function(error, info){
    if(error){
+    console.log(error);
     res.json({
     "message": "Error sending your message"
     });
@@ -360,18 +329,4 @@ apiRoutes.delete('/message/:messageId', function(req, res){
     res.json({message: 'success'});
   })
 });
-sendEmail = function(mailOptions, callback){
-
-// send mail with defined transport object
-//console.log(transporter);
-transporter.sendMail(mailOptions, function(error, info){
-    if(callback){
-      return callback(error, info);
-    }
-    if(error){
-        return console.log(error);
-    }
-    console.log('Message sent: ' + info.response);
-});
-}
 app.listen(process.env.PORT || 9000);

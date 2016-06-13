@@ -16,7 +16,7 @@ angular.module('starter', [
   if($window.localStorage['jwtToken']){
   $http.defaults.headers.common.Authorization = $window.localStorage['jwtToken'];
   if(typeof user == "undefined"){
-  user = jwtHelper.decodeToken($window.localStorage['jwtToken']);
+  user = jwtHelper.decodeToken($window.localStorage['jwtToken'])._doc;
   }
   //console.log(jwtHelper.decodeToken($window.localStorage['jwtToken']));
   }  
